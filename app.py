@@ -192,6 +192,14 @@ PACKING_ITEMS = [
     "Sleep mask for bright late-May nights",
 ]
 
+PUFFIN_FACTS = [
+    "Puffins flap their wings incredibly fast, but they are much more graceful underwater than in the air.",
+    "In Iceland, puffins are most commonly seen from late April through August.",
+    "A puffin's colorful beak gets brightest during breeding season.",
+    "Young puffins are called pufflings, which is almost unfairly charming.",
+    "Puffins often return to the same nesting burrow year after year.",
+]
+
 WEATHER_CITIES = {
     "Reykjavik": "Reykjavik",
     "Vik": "Vik",
@@ -404,6 +412,10 @@ def pill(text):
 
 def day_card(trip_day):
     theme_pills = " ".join(pill(theme) for theme in trip_day["themes"])
+    puffin_badge = ""
+    if "Wildlife" in trip_day["themes"] or any("puffin" in item.lower() for item in trip_day["highlights"]):
+        puffin_badge = '<div class="puffin-badge">(o)> puffin watch</div>'
+
     st.markdown(
         f"""
         <section class="day-card">
@@ -418,6 +430,7 @@ def day_card(trip_day):
                 {pill(trip_day["drive"])}
                 {theme_pills}
             </div>
+            {puffin_badge}
         </section>
         """,
         unsafe_allow_html=True,
@@ -435,6 +448,22 @@ def metric_card(label, value, detail):
         """,
         unsafe_allow_html=True,
     )
+
+
+def puffin_easter_egg(day):
+    if "Wildlife" not in day["themes"] and not any("puffin" in item.lower() for item in day["highlights"]):
+        return
+
+    fact = PUFFIN_FACTS[(day["day"] - 1) % len(PUFFIN_FACTS)]
+    if st.button("Puffin peek", key=f"puffin_{day['day']}"):
+        st.markdown(
+            f"""
+            <div class="puffin-note">
+                <strong>Little puffin note:</strong> {fact}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 # -----------------------------
@@ -575,6 +604,18 @@ st.markdown(
         font-weight: 650;
     }
 
+    .puffin-badge {
+        display: inline-flex;
+        margin-top: .8rem;
+        padding: .28rem .62rem;
+        border-radius: 999px;
+        background: rgba(111, 139, 98, .16);
+        border: 1px dashed rgba(111, 139, 98, .55);
+        color: #405a36;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+
     .detail-panel {
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -588,6 +629,15 @@ st.markdown(
         background: rgba(204, 107, 73, .1);
         color: #663220;
         margin: .8rem 0 1rem;
+    }
+
+    .puffin-note {
+        margin-top: .75rem;
+        padding: .85rem 1rem;
+        border: 1px dashed rgba(75, 156, 167, .5);
+        border-radius: 8px;
+        background: rgba(217, 238, 240, .5);
+        color: #173136;
     }
 
     .weather-strip {
@@ -694,6 +744,8 @@ with details_tab:
                     st.markdown("**Useful links**")
                     for label, url in day["links"].items():
                         st.markdown(f"- [{label}]({url})")
+
+                puffin_easter_egg(day)
 
             with right:
                 st.markdown('<div class="detail-panel">', unsafe_allow_html=True)
